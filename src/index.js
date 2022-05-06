@@ -6,7 +6,7 @@ import { readFile } from 'fs/promises';
 const addresses = ['tz1KySTBB8RXWVraggfXWLaLR9H3K3JBEbgt'];
 (async() => {
     // await getReport();
-    await getOperations();
+    //await getOperations();
 	const json = JSON.parse(
 	  await readFile(
 		new URL('./operations.json', import.meta.url)
@@ -40,7 +40,7 @@ async function parseOperationsToCSV (json) {
 		let transactionType = 'unsure'
 		// figure out the type of operation | buy, sell, transfer-in, transfer out
 		// for sale, initiator != addresses && target.address
-		if (addresses.includes(target?.address)) transactionType = 'sale'
+		if (!addresses.includes(initiator?.address) && addresses.includes(target?.address)) transactionType = 'sale'
 		if (addresses.includes(initiator?.address) && !addresses.includes(target?.address)) transactionType = 'buy'
 		
 		csv += `${timestamp}, ${transactionType}, XTZ, ${amount / 100000}, GBP, ${quote.gbp} \r\n`
