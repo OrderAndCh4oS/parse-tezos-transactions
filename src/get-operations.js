@@ -37,7 +37,7 @@ async function getOperations(addresses) {
 
 async function fetchOperations(addresses, searchParams) {
     const paramsStr = objktToSearchParams(searchParams);
-    const operationsUrl = `${tzktUrl}/accounts/${addresses[0]}/operations?${paramsStr}`
+    const operationsUrl = `${tzktUrl}/accounts/${addresses[0]}/operations?${paramsStr}`;
     const response = await fetch(operationsUrl);
     const data = await response.json();
     const lastId = data.slice(-1)?.[0]?.id || null;

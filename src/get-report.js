@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import {promises as fs, existsSync} from 'fs';
+import {existsSync, promises as fs} from 'fs';
 import {join} from 'path';
 import {addresses} from './config.js';
 import {outDir, tzktUrl} from './constants.js';
@@ -26,7 +26,7 @@ async function getReportsFor(addresses, from, to, currency = 'gbp') {
 
     for(const address of addresses) {
         try {
-            const paramsStr = objktToSearchParams(searchParams)
+            const paramsStr = objktToSearchParams(searchParams);
             const reportUrl = `${tzktUrl}/accounts/${address}/report?${paramsStr}`;
             console.log(reportUrl);
             const response = await fetch(reportUrl);
