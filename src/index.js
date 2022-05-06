@@ -48,7 +48,7 @@ async function parseOperationsToCSV (json) {
 		if (!addresses.includes(initiator?.address) && addresses.includes(target?.address)) transactionType = 'sale'
 		if (addresses.includes(initiator?.address) && !addresses.includes(target?.address)) transactionType = 'buy'
 		if (staking_payout_addresses.includes(sender?.address)) transactionType = 'staking reward'
-		if (!staking_payout_addresses.includes(sender?.address) && !initiator && !addresses.includes(target?.address)) transactionType = 'staking reward'
+		if (!staking_payout_addresses.includes(sender?.address) && !initiator && !addresses.includes(target?.address)) transactionType = 'payment'
 		
 		csv += `${timestamp}, ${transactionType}, XTZ, ${tez}, GBP, ${tez * quote.gbp} \r\n`
 	}
