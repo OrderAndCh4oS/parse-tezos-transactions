@@ -1,11 +1,18 @@
 import fetch from 'node-fetch';
 import {promises as fs} from 'fs';
 import {setTimeout} from 'timers/promises';
+import { readFile } from 'fs/promises';
 
 const addresses = ['tz1KySTBB8RXWVraggfXWLaLR9H3K3JBEbgt'];
 (async() => {
     // await getReport();
     await getOperations();
+	const json = JSON.parse(
+	  await readFile(
+		new URL('./operations.json', import.meta.url)
+	  )
+	);
+	await parseOperationsToCSV(json)
 })();
 
 async function getOperations() {
@@ -24,6 +31,21 @@ async function getOperations() {
     }
     console.log(operations.length);
     await fs.writeFile('operations.json', JSON.stringify(operations));
+}
+
+async function parseOperationsToCSV (json) {
+	let csv = 'Timestamp (UTC), Type, Base Currency, Base Amount, Quote Currency, Quote Amount \r\n'
+	for (let row of json) {
+		const { timestamp, type, initiator, target, quote, amount } = row
+		let transactionType = 'unsure'
+		// figure out the type of operation | buy, sell, transfer-in, transfer out
+		// for sale, initiator != addresses && target.address
+		if (addresses.includes(target?.address)) transactionType = 'sale'
+		if (addresses.includes(initiator?.address) && !addresses.includes(target?.address)) transactionType = 'buy'
+		
+		csv += `${timestamp}, ${transactionType}, XTZ, ${amount / 100000}, GBP, ${quote.gbp} \r\n`
+	}
+	await fs.writeFile('operations.csv', csv);
 }
 
 async function fetchOperations(searchParams) {
