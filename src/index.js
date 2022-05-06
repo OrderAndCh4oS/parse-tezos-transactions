@@ -4,6 +4,9 @@ import {setTimeout} from 'timers/promises';
 import { readFile } from 'fs/promises';
 
 const addresses = ['tz1KySTBB8RXWVraggfXWLaLR9H3K3JBEbgt'];
+// separate your 
+const staking_payout_addresses = ['tz1W1en9UpMCH4ZJL8wQCh8JDKCZARyVx2co']; // everstake
+
 (async() => {
     // await getReport();
     //await getOperations();
@@ -36,12 +39,15 @@ async function getOperations() {
 async function parseOperationsToCSV (json) {
 	let csv = 'Timestamp (UTC), Type, Base Currency, Base Amount, Quote Currency, Quote Amount \r\n'
 	for (let row of json) {
-		const { timestamp, type, initiator, target, quote, amount } = row
+		const { timestamp, type, initiator, sender, target, quote, amount } = row
 		let transactionType = 'unsure'
 		// figure out the type of operation | buy, sell, transfer-in, transfer out
 		// for sale, initiator != addresses && target.address
+		// if there's no initiator it's direct funds transfer
 		if (!addresses.includes(initiator?.address) && addresses.includes(target?.address)) transactionType = 'sale'
 		if (addresses.includes(initiator?.address) && !addresses.includes(target?.address)) transactionType = 'buy'
+		if (staking_payout_addresses.includes(sender?.address)) transactionType = 'staking reward'
+		if (!staking_payout_addresses.includes(sender?.address) && !initiator && !addresses.includes(target?.address)) transactionType = 'staking reward'
 		
 		csv += `${timestamp}, ${transactionType}, XTZ, ${amount / 100000}, GBP, ${quote.gbp} \r\n`
 	}
