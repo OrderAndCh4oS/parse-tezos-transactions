@@ -9,7 +9,7 @@ const staking_payout_addresses = ['tz1W1en9UpMCH4ZJL8wQCh8JDKCZARyVx2co']; // ev
 
 (async() => {
     // await getReport();
-    //await getOperations();
+    await getOperations();
 	const json = JSON.parse(
 	  await readFile(
 		new URL('./operations.json', import.meta.url)
@@ -40,6 +40,7 @@ async function parseOperationsToCSV (json) {
 	let csv = 'Timestamp (UTC), Type, Base Currency, Base Amount, Quote Currency, Quote Amount \r\n'
 	for (let row of json) {
 		const { timestamp, type, initiator, sender, target, quote, amount } = row
+		const tez = amount / 100000
 		let transactionType = 'unsure'
 		// figure out the type of operation | buy, sell, transfer-in, transfer out
 		// for sale, initiator != addresses && target.address
@@ -49,7 +50,7 @@ async function parseOperationsToCSV (json) {
 		if (staking_payout_addresses.includes(sender?.address)) transactionType = 'staking reward'
 		if (!staking_payout_addresses.includes(sender?.address) && !initiator && !addresses.includes(target?.address)) transactionType = 'staking reward'
 		
-		csv += `${timestamp}, ${transactionType}, XTZ, ${amount / 100000}, GBP, ${quote.gbp} \r\n`
+		csv += `${timestamp}, ${transactionType}, XTZ, ${tez}, GBP, ${tez * quote.gbp} \r\n`
 	}
 	await fs.writeFile('operations.csv', csv);
 }
