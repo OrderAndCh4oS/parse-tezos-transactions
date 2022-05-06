@@ -40,7 +40,7 @@ async function parseOperationsToCSV (json) {
 	let csv = 'Timestamp (UTC), Type, Base Currency, Base Amount, Quote Currency, Quote Amount \r\n'
 	for (let row of json) {
 		const { timestamp, type, initiator, sender, target, quote, amount } = row
-		const tez = amount / 10000000
+		const tez = amount / 1000000
 		let transactionType = 'unsure'
 		// figure out the type of operation | buy, sell, transfer-in, transfer out
 		// for sale, initiator != addresses && target.address
