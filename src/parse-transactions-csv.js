@@ -6,7 +6,7 @@ import {join} from 'path';
 import {outDir} from './constants.js';
 
 (async() => {
-    await parseTransactions(addresses, delegateAddresses);
+    await parseTransactionsCsv(addresses, delegateAddresses);
 })();
 
 /**
@@ -15,7 +15,7 @@ import {outDir} from './constants.js';
  * @param {string[]} delegateAddresses
  * @returns {Promise<void>}
  */
-async function parseTransactions(addresses, delegateAddresses) {
+async function parseTransactionsCsv(addresses, delegateAddresses) {
     const transactions = await getTransactionsJson();
     const transactionsCsv = join(outDir, 'transactions', 'transactions.csv');
     const data = [];
@@ -27,7 +27,7 @@ async function parseTransactions(addresses, delegateAddresses) {
         }
     }
     const csv = Papa.unparse({
-        fields: ['operation', 'entrypoint', 'targetAlias', 'targetContract', 'tokenId', 'fa2'],
+        fields: ['operation', 'entrypoint', 'targetAlias', 'targetContract', 'tokenId', 'fa2', 'value', 'royalties', 'editions'],
         data
     })
 
@@ -45,7 +45,10 @@ function handlerSwitch(transaction) {
                 transaction.target.alias,
                 transaction.target.address,
                 transaction.diffs[0].content.value.gentk.id,
-                '???'
+                '???',
+                transaction.diffs[0].content.value.price,
+                null,
+                null
             )
         case 'collect':
             // console.dir(transaction, {depth: null});
@@ -56,7 +59,25 @@ function handlerSwitch(transaction) {
                 transaction.target.alias,
                 transaction.target.address,
                 transaction.diffs?.[0].content.value.objkt_id,
-                '???'
+                '???',
+                transaction.diffs?.[0].content.value.price,
+                transaction.diffs?.[0].content.value.royalties,
+                transaction.diffs?.[0].content.value.objkt_amount
+
+            );
+        case 'swap':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.parameter?.value.objkt_id,
+                '???',
+                transaction.parameter?.value.xtz_per_objkt,
+                transaction.parameter?.value.royalties,
+                transaction.parameter?.value.objkt_amount,
             );
         case 'ask':
             // console.dir(transaction, {depth: null});
@@ -68,6 +89,9 @@ function handlerSwitch(transaction) {
                 transaction.target.address,
                 transaction.parameter?.value.objkt_id,
                 transaction.parameter?.value.fa2,
+                transaction.parameter?.value.price,
+                transaction.parameter.value.royalties,
+                transaction.parameter.value.amount
             );
         default:
             if(transaction.parameter?.entrypoint)
@@ -76,6 +100,6 @@ function handlerSwitch(transaction) {
     }
 }
 
-function makeTokenSet(operation, entrypoint, targetAlias, targetContract, tokenId, fa2) {
-    return [operation, entrypoint, targetAlias, targetContract, tokenId, fa2];
+function makeTokenSet(operation, entrypoint, targetAlias, targetContract, tokenId, fa2, value, royalties, editions) {
+    return [operation, entrypoint, targetAlias, targetContract, tokenId, fa2, value, royalties, editions];
 }
