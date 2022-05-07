@@ -20,13 +20,13 @@ async function parseTransactions(addresses, delegateAddresses) {
     console.log('++++++++++')
     console.log('++++++++++')
     for(const transaction of operationGroup) {
-        console.log(transaction.parameter || 'No parameter');
+        console.log('op hash:', transaction.hash)
+        console.log('parameter:', transaction.parameter || 'No parameter');
         if(transaction.diffs) {
+            console.log('diffs:')
             for(const diff of transaction?.diffs) {
                 console.dir(diff, {depth: null});
             }
-        } else {
-            console.log('No diffs')
         }
         console.log('------------')
     }
