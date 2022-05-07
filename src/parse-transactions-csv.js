@@ -35,6 +35,8 @@ async function parseTransactionsCsv(addresses, delegateAddresses) {
 }
 
 function handlerSwitch(transaction) {
+    // Todo: We're only handling named entrypoint transactions. Parameter is undefined on many.
+    //       Will need to workout how to identify them and pull out anything useful, eg possibly royalty values
     switch(transaction.parameter?.entrypoint) {
         case 'listing_accept':
             // console.dir(transaction, {depth: null});
