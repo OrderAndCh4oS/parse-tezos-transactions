@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
 import {existsSync, promises as fs} from 'fs';
-import {setTimeout} from 'timers/promises';
 import {join} from 'path';
 import {outDir, tzktUrl} from './constants.js';
+import {setTimeout} from 'timers/promises';
 
 (async() => {
     await getTransactions();
@@ -18,7 +18,7 @@ async function getTransactions() {
         await fs.mkdir(transactionsDir);
     }
 
-    const operationsJson = await fs.readFile(operationsPath, 'utf8')
+    const operationsJson = await fs.readFile(operationsPath, 'utf8');
     const operations = JSON.parse(operationsJson);
 
     let lastOperationHash;
@@ -26,35 +26,33 @@ async function getTransactions() {
     let indexOfLastOperationHash = -1;
 
     if(existsSync(transactionsPath)) {
-        const transactionsJson = await fs.readFile(transactionsPath, 'utf8')
-        if(transactionsJson.length) {
-            lastOperationHash = transactionsJson[transactionsJson.length - 1].hash
+        const transactionsStr = await fs.readFile(transactionsPath, 'utf8');
+        transactions = JSON.parse(`[${transactionsStr.slice(0, -2)}]`);
+        if(transactions.length) {
+            lastOperationHash = transactions[transactions.length - 1][0].hash;
+            indexOfLastOperationHash = operations.findIndex(o => o.hash === lastOperationHash);
         }
-        transactions = JSON.parse(await fs.readFile(transactionsPath));
-        indexOfLastOperationHash = transactions.findIndex(o => o.hash === lastOperationHash)
     }
 
     let i = indexOfLastOperationHash + 1;
-    const l = operations.length
+    const l = operations.length;
 
     for(; i < l; i++) {
+        console.log('iter', i, l);
         const operation = operations[i];
         try {
             const transaction = await fetchTransaction(operation.hash);
-            // console.dir(transaction.data[1].diffs, {depth: null});
-            transactions.push(transaction);
+            await fs.writeFile(transactionsPath, `${JSON.stringify(transaction)},\n`, { flag: "a" });
+            await setTimeout(5);
         } catch(e) {
             console.log(e);
         }
     }
 
-    await fs.writeFile(transactionsPath, JSON.stringify(transactions));
 }
 
 async function fetchTransaction(operationHash) {
     const operationsUrl = `${tzktUrl}/operations/transactions/${operationHash}`;
     const response = await fetch(operationsUrl);
-    const data = await response.json();
-    await setTimeout(50);
-    return data;
+    return await response.json();
 }
