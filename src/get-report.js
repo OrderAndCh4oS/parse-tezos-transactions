@@ -10,6 +10,14 @@ import {outDir, tzktUrl} from './constants.js';
     await getReportsFor(addresses, from, to);
 })();
 
+/**
+ *
+ * @param {string[]} addresses
+ * @param {string} from
+ * @param {string} to
+ * @param {string} currency
+ * @returns {Promise<void>}
+ */
 async function getReportsFor(addresses, from, to, currency = 'gbp') {
     const searchParams = {
         from,
@@ -28,7 +36,6 @@ async function getReportsFor(addresses, from, to, currency = 'gbp') {
         try {
             const paramsStr = objktToSearchParams(searchParams);
             const reportUrl = `${tzktUrl}/accounts/${address}/report?${paramsStr}`;
-            console.log(reportUrl);
             const response = await fetch(reportUrl);
             const report = await response.text();
             const reportCsv = join(reportsDir, `${address}-report.csv`);

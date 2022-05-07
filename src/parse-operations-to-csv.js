@@ -3,6 +3,7 @@ import {join} from 'path';
 import {outDir} from './constants.js';
 import {addresses, delegateAddresses} from './config.js';
 import Papa from 'papaparse';
+import getOperationsJson from './utilities/get-operations-json.js';
 
 (async() => {
     await parseOperationsToCsv(addresses, delegateAddresses);
@@ -21,15 +22,18 @@ function makeRow(
     ];
 }
 
+/**
+ *
+ * @param {string[]} addresses
+ * @param {string[]} delegateAddresses
+ * @returns {Promise<void>}
+ */
 async function parseOperationsToCsv(addresses, delegateAddresses) {
     const operationsDir = join(outDir, 'operations');
-    const operationsPath = join(operationsDir, 'operations.json');
+
+    const operations = await getOperationsJson();
+
     const operationsCsv = join(operationsDir, 'operations.csv');
-
-    const operations = JSON.parse(
-        await fs.readFile(operationsPath, 'utf-8')
-    );
-
     let data = [];
     for(let operation of operations) {
         const {

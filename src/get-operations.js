@@ -1,15 +1,21 @@
 import fetch from 'node-fetch';
 import {existsSync, promises as fs} from 'fs';
-import {setTimeout} from 'timers/promises';
 import {join} from 'path';
 import {outDir, tzktUrl} from './constants.js';
 import {addresses} from './config.js';
+import {setTimeout} from 'timers/promises';
 
 (async() => {
     await getOperations(addresses);
 })();
 
-async function getOperations(addresses) {
+/**
+ *
+ * @param {string[]} addresses
+ * @param {number | null} rateLimit
+ * @returns {Promise<void>}
+ */
+async function getOperations(addresses, rateLimit = null) {
     const searchParams = {quote: 'gbp'};
     const operations = [];
     while(true) {
@@ -24,7 +30,9 @@ async function getOperations(addresses) {
         } catch(e) {
             console.log(e);
         }
-        await setTimeout(50);
+        if(rateLimit) {
+            await setTimeout(50);
+        }
     }
 
     const operationsDir = join(outDir, 'operations');

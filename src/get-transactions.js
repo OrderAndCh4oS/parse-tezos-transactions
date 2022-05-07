@@ -2,13 +2,20 @@ import fetch from 'node-fetch';
 import {existsSync, promises as fs} from 'fs';
 import {join} from 'path';
 import {outDir, tzktUrl} from './constants.js';
-import {setTimeout} from 'timers/promises';
+import getTransactionsJson from './utilities/get-transactions-json.js';
+// import {setTimeout} from 'timers/promises';
 
 (async() => {
     await getTransactions();
 })();
 
-async function getTransactions() {
+
+
+/**
+ *
+ * @param {number | null} rateLimit
+ */
+async function getTransactions(rateLimit = null) {
     const operationsDir = join(outDir, 'operations');
     const operationsPath = join(operationsDir, 'operations.json');
     const transactionsDir = join(outDir, 'transactions');
@@ -18,7 +25,7 @@ async function getTransactions() {
         await fs.mkdir(transactionsDir);
     }
 
-    const operationsJson = await fs.readFile(operationsPath, 'utf8');
+    const operationsJson = await fs.readFile(operationsPath, 'utf-8');
     const operations = JSON.parse(operationsJson);
 
     let lastOperationHash;
@@ -26,8 +33,7 @@ async function getTransactions() {
     let indexOfLastOperationHash = -1;
 
     if(existsSync(transactionsPath)) {
-        const transactionsStr = await fs.readFile(transactionsPath, 'utf8');
-        transactions = JSON.parse(`[${transactionsStr.slice(0, -2)}]`);
+        transactions = await getTransactionsJson();
         if(transactions.length) {
             lastOperationHash = transactions[transactions.length - 1][0].hash;
             indexOfLastOperationHash = operations.findIndex(o => o.hash === lastOperationHash);
@@ -38,17 +44,17 @@ async function getTransactions() {
     const l = operations.length;
 
     for(; i < l; i++) {
-        console.log('iter', i, l);
         const operation = operations[i];
         try {
             const transaction = await fetchTransaction(operation.hash);
             await fs.writeFile(transactionsPath, `${JSON.stringify(transaction)},\n`, { flag: "a" });
-            await setTimeout(5);
+            if(rateLimit) {
+                await setTimeout(rateLimit);
+            }
         } catch(e) {
             console.log(e);
         }
     }
-
 }
 
 async function fetchTransaction(operationHash) {
