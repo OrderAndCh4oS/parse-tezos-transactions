@@ -13,22 +13,54 @@ import getTransactionsJson from './utilities/get-transactions-json.js';
  */
 async function parseTransactions(addresses, delegateAddresses) {
     const transactions = await getTransactionsJson();
-    console.log(transactions[0]);
-    const operationGroup = transactions[0];
-    console.log('++++++++++')
-    console.log('++++++++++')
-    console.log('++++++++++')
-    console.log('++++++++++')
-    for(const transaction of operationGroup) {
-        console.log('op hash:', transaction.hash)
-        console.log('parameter:', transaction.parameter || 'No parameter');
-        if(transaction.diffs) {
-            console.log('diffs:')
-            for(const diff of transaction?.diffs) {
-                console.dir(diff, {depth: null});
-            }
+
+    const transactionData = [];
+
+    for(const operationGroup of transactions) {
+        for(const transaction of operationGroup) {
+            const data = handlerSwitch(transaction);
+            if(data) transactionData.push(data);
         }
-        console.log('------------')
     }
 
+    console.log(transactionData);
+}
+
+function getFxHashContract(transaction) {
+    return transaction.diffs[0].content.value.gentk.version === '1'
+        ? 'v1 fxhash contract'
+        : 'v2 fxhash contract';
+}
+
+function makeTokenSet(operation, entrypoint, targetAlias, contract, tokenId) {
+    return {operation, entrypoint, targetAlias, contract, tokenId};
+}
+
+function handlerSwitch(transaction) {
+    switch(transaction.parameter?.entrypoint) {
+        case 'listing_accept':
+            console.log(transaction.storage);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs[0].content.value.gentk.id
+            )
+        case 'collect':
+            // console.log(transaction);
+            // console.log(transaction.diffs[0]);
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.objkt_id || '???',
+            );
+        default:
+            if(transaction.parameter?.entrypoint)
+                console.log(transaction.parameter?.entrypoint);
+            return null;
+    }
 }
