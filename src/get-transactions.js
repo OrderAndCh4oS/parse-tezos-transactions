@@ -3,21 +3,18 @@ import {existsSync, promises as fs} from 'fs';
 import {join} from 'path';
 import {outDir, tzktUrl} from './constants.js';
 import getTransactionsJson from './utilities/get-transactions-json.js';
-// import {setTimeout} from 'timers/promises';
+import getOperationsJson from './utilities/get-operations-json.js';
+import {setTimeout} from 'timers/promises';
 
 (async() => {
     await getTransactions();
 })();
-
-
 
 /**
  *
  * @param {number | null} rateLimit
  */
 async function getTransactions(rateLimit = null) {
-    const operationsDir = join(outDir, 'operations');
-    const operationsPath = join(operationsDir, 'operations.json');
     const transactionsDir = join(outDir, 'transactions');
     const transactionsPath = join(transactionsDir, 'transactions.json');
 
@@ -25,9 +22,7 @@ async function getTransactions(rateLimit = null) {
         await fs.mkdir(transactionsDir);
     }
 
-    const operationsJson = await fs.readFile(operationsPath, 'utf-8');
-    const operations = JSON.parse(operationsJson);
-
+    const operations = getOperationsJson();
     let lastOperationHash;
     let transactions = [];
     let indexOfLastOperationHash = -1;
