@@ -23,11 +23,11 @@ function makeRow(
 
 async function parseOperationsToCsv(addresses, delegateAddresses) {
     const operationsDir = join(outDir, 'operations');
-    const operationsJson = join(operationsDir, 'operations.json');
+    const operationsPath = join(operationsDir, 'operations.json');
     const operationsCsv = join(operationsDir, 'operations.csv');
 
     const operations = JSON.parse(
-        await fs.readFile(new URL(operationsJson, import.meta.url))
+        await fs.readFile(operationsPath, 'utf-8')
     );
 
     let data = [];
