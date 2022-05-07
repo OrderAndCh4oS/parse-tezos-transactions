@@ -93,6 +93,105 @@ function handlerSwitch(transaction) {
                 transaction.parameter.value.royalties,
                 transaction.parameter.value.amount
             );
+        case 'fulfill_bid':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.objkt_id,
+                '???',
+                transaction.diffs?.[0].content.value.xtz_per_objkt,
+                transaction.diffs?.[0].content.value.royalties,
+                transaction.diffs?.[0].content.value.objkt_amount,
+            );
+        case 'fulfill_ask':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.token?.token_id,
+                transaction.diffs?.[0].content.value.token?.address,
+                transaction.diffs?.[0].content.value.amount,
+                transaction.diffs?.[0].content.value.shares?.[0].amount, // Todo: this is wrong, need to loop the shares and find matching addresses
+                transaction.diffs?.[0].content.value.editions,
+            );
+        case 'conclude_auction':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.objkt_id,
+                '???',
+                transaction.diffs?.[0].content.value.current_price, // Todo: verify this…
+                transaction.diffs?.[0].content.value.royalties,
+                1, // Todo: verify this…
+            );
+        case 'transfer':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.key.nat, // Todo: Could be multiple tokens here…
+                null,
+                null,
+                null,
+                null
+            );
+        case 'cancel_swap':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.objkt_id, // Todo: Could be multiple tokens here…
+                transaction.diffs?.[0].content.value.fa2,
+                null,
+                null,
+                transaction.diffs?.[0].content.value.objkt_amount
+            );
+        case 'mint_OBJKT':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.storage.objkt_id,
+                transaction.storage.objkt,
+                null,
+                transaction.parameter?.value.royalties,
+                transaction.parameter?.value.amount
+            );
+        case 'mint':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            // Todo: Multiple marketplaces call a mint entrypoint with varying data
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
         default:
             if(transaction.parameter?.entrypoint)
                 console.log(transaction.parameter?.entrypoint);
