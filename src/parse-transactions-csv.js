@@ -5,6 +5,8 @@ import {promises as fs} from 'fs';
 import {join} from 'path';
 import {outDir} from './constants.js';
 
+const ignoredEndpoints = ['update_operators'];
+
 (async() => {
     await parseTransactionsCsv(addresses, delegateAddresses);
 })();
@@ -194,10 +196,165 @@ function handlerSwitch(transaction) {
                 null,
                 null
             );
+        case 'bid':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.objkt_id,
+                transaction.diffs?.[0].content.value.fa2,
+                transaction.diffs?.[0].content.value.xtz_per_objkt,
+                transaction.diffs?.[0].content.value.royalties,
+                null
+            );
+        case 'buy':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.nft_id,
+                transaction.diffs?.[0].content.value.nft_contract_address,
+                transaction.diffs?.[0].content.value.payment,
+                transaction.diffs?.[0].content.value.royalties,
+                null
+            );
+        case 'trade_in':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.parameter.value.join,
+                null,
+                null,
+                null,
+                null
+            );
+        case 'collect_swap':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.key.nat,
+                transaction.diffs?.[0].content.key.address,
+                transaction.diffs?.[0].content.ending_price_in_nat,
+                null,
+                null
+            );
+        case 'fulfill_offer':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.token_id,
+                transaction.diffs?.[0].content.value.address,
+                transaction.diffs?.[0].content.value.amount,
+                transaction.diffs?.[0].content.value.shares?.[0].amount, // Todo: this is wrong, need to loop the shares and find matching addresses
+                null
+            );
+        case 'pay_royalties_xtz':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.parameter.value.token_id,
+                null,
+                null,
+                null,
+                null
+            );
+        case 'batch_fwd_xtz':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                null,
+                null,
+                transaction.parameter?.value.receivers.amount,
+                null,
+                null
+            );
+        case 'create_swap':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.parameter?.value.token.nat,
+                transaction.parameter?.value.token.address,
+                null,
+                null,
+                null
+            );
+        case 'offer':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                transaction.diffs?.[0].content.value.token?.token_id,
+                transaction.diffs?.[0].content.value.token?.address,
+                transaction.diffs?.[0].content.value.amount,
+                transaction.diffs?.[0].content.value.shares?.[0].amount, // Todo: this is wrong, need to loop the shares and find matching addresses
+                null
+            );
+        // Generic endpoint data
+        case '_charge_materia':
+        case 'claim_bees':
+        case 'mint_issuer':
+        case 'update_operators':
+        case 'add':
+            // console.dir(transaction, {depth: null});
+            // process.exit(0);
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target.alias,
+                transaction.target.address,
+                null,
+                null,
+                null,
+                null, // Todo: this is wrong, need to loop the shares and find matching addresses
+                null
+            );
         default:
             if(transaction.parameter?.entrypoint)
                 console.log(transaction.parameter?.entrypoint);
-            return null;
+            return makeTokenSet(
+                transaction.hash,
+                transaction.parameter?.entrypoint,
+                transaction.target?.alias,
+                transaction.target?.address,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
     }
 }
 
