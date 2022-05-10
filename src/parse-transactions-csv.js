@@ -24,7 +24,7 @@ async function parseTransactionsCsv(addresses, delegateAddresses) {
 
     for(const operationGroup of transactions) {
         for(const transaction of operationGroup) {
-            const tokenData = handlerSwitch(transaction);
+            const tokenData = handlerSwitch(transaction, addresses);
             if(tokenData) data.push(tokenData);
         }
     }
@@ -36,7 +36,7 @@ async function parseTransactionsCsv(addresses, delegateAddresses) {
     await fs.writeFile(transactionsCsv, csv);
 }
 
-function handlerSwitch(transaction) {
+function handlerSwitch(transaction, addresses) {
     // Todo: We're only handling named entrypoint transactions. Parameter is undefined on many.
     //       Will need to workout how to identify them and pull out anything useful, eg possibly royalty values
     switch(transaction.parameter?.entrypoint) {
@@ -122,7 +122,7 @@ function handlerSwitch(transaction) {
                 transaction.diffs?.[0].content.value.token?.token_id,
                 transaction.diffs?.[0].content.value.token?.address,
                 transaction.diffs?.[0].content.value.amount,
-                transaction.diffs?.[0].content.value.shares?.[0].amount, // Todo: this is wrong, need to loop the shares and find matching addresses
+                getShareOfTransaction(transaction.diffs?.[0].content.value.shares, addresses), // loop the shares and find matching addresses
                 transaction.diffs?.[0].content.value.editions,
             );
         case 'conclude_auction':
@@ -263,7 +263,7 @@ function handlerSwitch(transaction) {
                 transaction.diffs?.[0].content.value.token_id,
                 transaction.diffs?.[0].content.value.address,
                 transaction.diffs?.[0].content.value.amount,
-                transaction.diffs?.[0].content.value.shares?.[0].amount, // Todo: this is wrong, need to loop the shares and find matching addresses
+                getShareOfTransaction(transaction.diffs?.[0].content.value.shares, addresses), // loop the shares and find matching addresses
                 null
             );
         case 'pay_royalties_xtz':
@@ -319,7 +319,7 @@ function handlerSwitch(transaction) {
                 transaction.diffs?.[0].content.value.token?.token_id,
                 transaction.diffs?.[0].content.value.token?.address,
                 transaction.diffs?.[0].content.value.amount,
-                transaction.diffs?.[0].content.value.shares?.[0].amount, // Todo: this is wrong, need to loop the shares and find matching addresses
+                getShareOfTransaction(transaction.diffs?.[0].content.value.shares, addresses), // loop the shares and find matching addresses
                 null
             );
         // Generic endpoint data
@@ -338,7 +338,7 @@ function handlerSwitch(transaction) {
                 null,
                 null,
                 null,
-                null, // Todo: this is wrong, need to loop the shares and find matching addresses
+                getShareOfTransaction(transaction.diffs?.[0].content.value.shares, addresses), // loop the shares and find matching addresses // Todo: this is wrong, need to loop the shares and find matching addresses
                 null
             );
         default:
@@ -356,6 +356,15 @@ function handlerSwitch(transaction) {
                 null
             );
     }
+}
+
+function getShareOfTransaction (shares, addresses) {
+    return [ ...(shares || []) ].reduce((prev, curr) => {
+        if (addresses.includes(curr.recipient)) {
+            prev += curr.amount
+        }
+        return prev
+    }, 0)
 }
 
 function makeTokenSet(operation, entrypoint, targetAlias, targetContract, tokenId, fa2, value, royalties, editions) {

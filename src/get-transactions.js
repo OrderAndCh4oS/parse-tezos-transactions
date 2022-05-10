@@ -6,7 +6,7 @@ import getTransactionsJson from './utilities/get-transactions-json.js';
 import getOperationsJson from './utilities/get-operations-json.js';
 import {setTimeout} from 'timers/promises';
 
-(async() => {
+(async() => {    
     await getTransactions();
 })();
 
@@ -19,13 +19,14 @@ async function getTransactions(rateLimit = null) {
     const transactionsPath = join(transactionsDir, 'transactions.json');
 
     if(!existsSync(transactionsDir)) {
-        await fs.mkdir(transactionsDir);
+        await fs.mkdir(transactionsDir, {recursive: true});
     }
 
-    const operations = getOperationsJson();
+    const operations = await getOperationsJson();
     let lastOperationHash;
     let transactions = [];
     let indexOfLastOperationHash = -1;
+
 
     if(existsSync(transactionsPath)) {
         transactions = await getTransactionsJson();
