@@ -10,10 +10,11 @@ import getOperationsJson from './utilities/get-operations-json.js';
 })();
 
 function makeRow(
-    timestamp, transactionType, fromCurrency, xtz, toCurrency, fiatValue
+    timestamp, operationHash, transactionType, fromCurrency, xtz, toCurrency, fiatValue
 ) {
     return [
         timestamp,
+        operationHash,
         transactionType,
         fromCurrency,
         xtz,
@@ -37,6 +38,7 @@ async function parseOperationsToCsv(addresses, delegateAddresses) {
     let data = [];
     for(let operation of operations) {
         const {
+            hash,
             timestamp,
             type,
             initiator,
@@ -57,12 +59,13 @@ async function parseOperationsToCsv(addresses, delegateAddresses) {
         );
 
         data.push(
-            makeRow(timestamp, transactionType, 'XTZ', xtz, 'GBP', fiatValue)
+            makeRow(timestamp, hash, transactionType, 'XTZ', xtz, 'GBP', fiatValue)
         );
     }
     const csv = Papa.unparse({
         fields: [
             'Timestamp (UTC)',
+            'Operation',
             'Type',
             'Base Currency',
             'Base Amount',
@@ -74,8 +77,7 @@ async function parseOperationsToCsv(addresses, delegateAddresses) {
     await fs.writeFile(operationsCsv, csv);
 }
 
-function getTransactionType(
-    addresses, delegateAddresses, initiator, target, sender) {
+function getTransactionType(addresses, delegateAddresses, initiator, target, sender) {
     switch(true) {
         case isSale(addresses, initiator, target):
             return 'sale';
