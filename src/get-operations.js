@@ -25,14 +25,14 @@ async function getOperations(addresses, rateLimit = null) {
                     data,
                     lastId
                 } = await fetchOperations(address, searchParams);
-                operations.push(...({address, data}));
+                operations.push(...data);
                 if(!lastId) break;
                 searchParams['lastId'] = lastId;
             } catch(e) {
                 console.log(e);
             }
             if(rateLimit) {
-                await setTimeout(50);
+                await setTimeout(rateLimit);
             }
         }
     }

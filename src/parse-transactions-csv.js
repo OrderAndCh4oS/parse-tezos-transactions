@@ -38,7 +38,8 @@ async function parseTransactionsCsv(addresses, delegateAddresses) {
             'fa2',
             'value',
             'royalties',
-            'editions'],
+            'editions'
+        ],
         data
     });
 
@@ -218,13 +219,11 @@ function transactionParameterSwitch(transaction, addresses) {
         case 'transfer': // Todo: could be useful for recipient data
         case 'mint': // Todo: could handle these to get token ids/royalties/supply
             // logAndExit(transaction);
-            // return makeGenericRow(transaction);
-            return null;
+            return makeGenericRow(transaction);
         default:
             if(transaction.parameter?.entrypoint)
                 console.log(transaction.parameter?.entrypoint);
-            // return makeGenericRow(transaction);
-            return null;
+            return makeGenericRow(transaction);
     }
 }
 
@@ -247,14 +246,14 @@ function makeRow(
 }
 
 function makeGenericRow(transaction) {
-    return makeRow([
+    return [
         ...makeGenericData(transaction),
         null,
         null,
         null,
         null, // Note: these generics shouldn't contain shares or xtz transfer
         null
-    ]);
+    ];
 }
 
 /**

@@ -64,13 +64,13 @@ async function parseOperationsToCsv(addresses, delegateAddresses) {
     }
     const csv = Papa.unparse({
         fields: [
-            'Timestamp (UTC)',
-            'Operation',
-            'Type',
-            'Base Currency',
-            'Base Amount',
-            'Quote Currency',
-            'Quote Amount'
+            'timestamp',
+            'operation',
+            'type',
+            'currency',
+            'amount',
+            'fiatCurrency',
+            'fiatAmount'
         ],
         data
     })
