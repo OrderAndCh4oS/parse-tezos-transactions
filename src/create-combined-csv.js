@@ -30,6 +30,7 @@ function makeOperationRow(operation) {
         null,
         null,
         null,
+        null,
         null
     ];
 
@@ -46,6 +47,7 @@ function makeCombinationRow(operation, transaction) {
         operation.amount,
         operation.fiatCurrency,
         operation.fiatAmount,
+        transaction.operation,
         transaction.entrypoint,
         transaction.targetAlias,
         transaction.targetContract,
@@ -101,6 +103,7 @@ async function createCombinedCsv(addresses) {
             'Base Amount',
             'Quote Currency',
             'Quote Amount',
+            'Transaction Operation',
             'Entrypoint',
             'Target Alias',
             'Target Contract',
