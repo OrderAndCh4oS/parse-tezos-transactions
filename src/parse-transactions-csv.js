@@ -24,8 +24,7 @@ async function parseTransactionsCsv(addresses, delegateAddresses) {
 
     for(const operationGroup of transactions) {
         for(const transaction of operationGroup) {
-            const tokenData = transactionParameterSwitch(transaction,
-                addresses);
+            const tokenData = transactionParameterSwitch(transaction, addresses);
             if(tokenData) data.push(tokenData);
         }
     }
@@ -39,7 +38,8 @@ async function parseTransactionsCsv(addresses, delegateAddresses) {
             'fa2',
             'value',
             'royalties',
-            'editions'],
+            'editions'
+        ],
         data
     });
 
@@ -51,17 +51,6 @@ async function parseTransactionsCsv(addresses, delegateAddresses) {
 function logAndExit(transaction) {
     console.dir(transaction, {depth: null});
     process.exit(0);
-}
-
-function makeVersumClaimMateriaRow(transaction) {
-    return makeRow(
-        ...makeGenericData(transaction),
-        null,
-        null,
-        transaction.parameter.value.amount + ' Materia',
-        null,
-        null
-    );
 }
 
 // Todo: One of these switches per contract
@@ -94,10 +83,12 @@ function transactionParameterSwitch(transaction, addresses) {
         case 'cancel_swap':
             // logAndExit(transaction);
             // Todo: handle multiple endpoints
-            return makeHenCancelSwapRow(transaction);
+            // return makeHenCancelSwapRow(transaction);
+            return null;
         case 'mint_OBJKT':
             // logAndExit(transaction);
-            return makeObjktMintRow(transaction);
+            // return makeObjktMintRow(transaction);
+            return null;
         case 'bid':
             // logAndExit(transaction);
             // Todo: handle multiple endpoints
@@ -108,7 +99,8 @@ function transactionParameterSwitch(transaction, addresses) {
             return make8BidouBuyRow(transaction);
         case 'trade_in':
             // logAndExit(transaction);
-            return makePirateTradeInRow(transaction);
+            // return makePirateTradeInRow(transaction);
+            return null;
         case 'collect_swap':
             // logAndExit(transaction);
             return makeVersumCollectSwapRow(transaction);
@@ -135,30 +127,48 @@ function transactionParameterSwitch(transaction, addresses) {
             return makeVersumAcceptOfferRow(transaction);
         case 'claim_materia':
             // logAndExit(transaction);
-            return makeVersumClaimMateriaRow(transaction);
+            return null;
+            // return makeVersumClaimMateriaRow(transaction);
         case 'match_orders':
             // Todo: extract data
             // logAndExit(transaction);
-            return makeRow(
-                ...makeGenericData(transaction),
-                null, // token id
-                null, // contract address
-                transaction.parameter.value.order_left.take_asset.asset_value, // value
-                null, // royalties
-                null, // amount of tokens
-            );
+            return null;
+            // return makeRow(
+            //     ...makeGenericData(transaction),
+            //     null, // token id
+            //     null, // contract address
+            //     transaction.parameter.value.order_left.take_asset.asset_value, // value
+            //     null, // royalties
+            //     null, // amount of tokens
+            // );
         case 'tokenToTezPayment':
             // Todo: figure out what to do with QuipuSwap transfers
             // logAndExit(transaction);
-            return makeRow(
-                ...makeGenericData(transaction),
-                null, // token id
-                null, // contract address
-                null, // value
-                null, // royalties
-                null, // amount of tokens
-            );
-        case 'x':
+            return null;
+            // return makeRow(
+            //     ...makeGenericData(transaction),
+            //     null, // token id
+            //     null, // contract address
+            //     null, // value
+            //     null, // royalties
+            //     null, // amount of tokens
+            // );
+        case 'tezToTokenPayment':
+            // Todo: figure out what to do with QuipuSwap transfers
+            // logAndExit(transaction);
+            return null;
+            // return makeRow(
+            //     ...makeGenericData(transaction),
+            //     null, // token id
+            //     null, // contract address
+            //     null, // value
+            //     null, // royalties
+            //     null, // amount of tokens
+            // );
+        case 'sell':
+            // logAndExit(transaction);
+            return makeUnknownSellTokenSet(transaction);
+        case 'x': // Template
             // Note: Template
             logAndExit(transaction);
             return makeRow(
@@ -196,12 +206,16 @@ function transactionParameterSwitch(transaction, addresses) {
         case 'update_record':
         case 'burn_supply':
         case 'execute':
+        case 'curate':
+        case 'commit':
+        case 'update_reverse_record':
         case 'assignMetadata':
         case '_charge_materia': // Todo: should account for this, it's money out
         case 'claim_bees':
         case 'mint_issuer':
         case 'update_operators':
         case 'add':
+        case 'hDAO_batch':
         case 'transfer': // Todo: could be useful for recipient data
         case 'mint': // Todo: could handle these to get token ids/royalties/supply
             // logAndExit(transaction);
@@ -209,17 +223,7 @@ function transactionParameterSwitch(transaction, addresses) {
         default:
             if(transaction.parameter?.entrypoint)
                 console.log(transaction.parameter?.entrypoint);
-            return makeRow(
-                transaction.hash,
-                transaction.parameter?.entrypoint,
-                transaction.target?.alias,
-                transaction.target?.address,
-                null,
-                null,
-                null,
-                null,
-                null
-            );
+            return makeGenericRow(transaction);
     }
 }
 
@@ -242,14 +246,14 @@ function makeRow(
 }
 
 function makeGenericRow(transaction) {
-    return makeRow([
+    return [
         ...makeGenericData(transaction),
         null,
         null,
         null,
         null, // Note: these generics shouldn't contain shares or xtz transfer
         null
-    ]);
+    ];
 }
 
 /**
@@ -385,8 +389,8 @@ function makeObjktBidRow(transaction) {
 function makeObjktMintRow(transaction) {
     return makeRow(
         ...makeGenericData(transaction),
-        transaction.storage.objkt_id,
-        transaction.storage.objkt,
+        transaction.storage?.objkt_id,
+        transaction.storage?.objkt,
         null,
         transaction.parameter?.value.royalties,
         transaction.parameter?.value.amount
@@ -490,6 +494,28 @@ function makeVersumAcceptOfferRow(transaction) {
         transaction.diffs[0].content.value.price_in_nat,
         null,
         transaction.diffs[0].content.value.token_amount
+    );
+}
+
+function makeVersumClaimMateriaRow(transaction) {
+    return makeRow(
+        ...makeGenericData(transaction),
+        null,
+        null,
+        transaction.parameter.value.amount + ' Materia',
+        null,
+        null
+    );
+}
+
+function makeUnknownSellTokenSet(transaction) {
+    return makeRow(
+        ...makeGenericData(transaction),
+        transaction.value?.sale_token_param_tez.token_for_sale_token_id, // token id
+        transaction.value?.sale_token_param_tez.token_for_sale_address, // contract address
+        transaction.value?.sale_price, // value
+        null, // royalties
+        null // amount of tokens
     );
 }
 

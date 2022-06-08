@@ -18,22 +18,25 @@ import {setTimeout} from 'timers/promises';
 async function getOperations(addresses, rateLimit = null) {
     const searchParams = {quote: 'gbp'};
     const operations = [];
-    while(true) {
-        try {
-            const {
-                data,
-                lastId
-            } = await fetchOperations(addresses, searchParams);
-            operations.push(...data);
-            if(!lastId) break;
-            searchParams['lastId'] = lastId;
-        } catch(e) {
-            console.log(e);
-        }
-        if(rateLimit) {
-            await setTimeout(50);
+    for(const address of addresses) {
+        while(true) {
+            try {
+                const {
+                    data,
+                    lastId
+                } = await fetchOperations(address, searchParams);
+                operations.push(...data);
+                if(!lastId) break;
+                searchParams['lastId'] = lastId;
+            } catch(e) {
+                console.log(e);
+            }
+            if(rateLimit) {
+                await setTimeout(rateLimit);
+            }
         }
     }
+
 
     const operationsDir = join(outDir, 'operations');
     if(!existsSync(operationsDir)) {
@@ -43,10 +46,9 @@ async function getOperations(addresses, rateLimit = null) {
     await fs.writeFile(operationsJson, JSON.stringify(operations));
 }
 
-async function fetchOperations(addresses, searchParams) {
+async function fetchOperations(address, searchParams) {
     const paramsStr = objktToSearchParams(searchParams);
-    const operationsUrl = `${tzktUrl}/accounts/${addresses[0]}/operations?${paramsStr}`;
-    console.log(operationsUrl);
+    const operationsUrl = `${tzktUrl}/accounts/${address}/operations?${paramsStr}`;
     const response = await fetch(operationsUrl);
     const data = await response.json();
     const lastId = data.slice(-1)?.[0]?.id || null;
