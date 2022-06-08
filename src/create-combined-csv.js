@@ -5,13 +5,18 @@ import {addresses} from './config.js';
 import Papa from 'papaparse';
 import getTransactionsCsv from './utilities/get-transactions-csv.js';
 import getOperationsCsv from './utilities/get-operations-csv.js';
+import crypto from 'crypto';
 
 (async() => {
     await createCombinedCsv(addresses);
 })();
 
+function hashArr(arr) {
+    return crypto.createHash('md5').update(JSON.stringify(arr)).digest('hex');
+}
+
 function makeOperationRow(operation) {
-    return [
+    const arr = [
         operation.timestamp,
         operation.operation,
         operation.type,
@@ -27,10 +32,13 @@ function makeOperationRow(operation) {
         null,
         null
     ];
+
+    const hash = hashArr(arr);
+    return {hash, arr};
 }
 
 function makeCombinationRow(operation, transaction) {
-    return [
+    const arr = [
         operation.timestamp,
         operation.operation,
         operation.type,
@@ -47,6 +55,9 @@ function makeCombinationRow(operation, transaction) {
         transaction.royalties,
         transaction.editions
     ];
+
+    const hash = hashArr(arr);
+    return {hash, arr};
 }
 
 /**
@@ -57,7 +68,7 @@ function makeCombinationRow(operation, transaction) {
 async function createCombinedCsv(addresses) {
     let operations = await getOperationsCsv();
     let transactions = await getTransactionsCsv();
-    const data = [];
+    const data = {};
 
     if(!operations) throw new Error('Failed to load operations.csv');
     if(!transactions) throw new Error('Failed to load transactions.csv');
@@ -69,13 +80,17 @@ async function createCombinedCsv(addresses) {
     for(const operation of operations) {
         const matchingTransactions = transactions.filter(t => t.operation === operation.operation);
         if(!matchingTransactions.length) {
-            data.push(makeOperationRow(operation));
+            const {hash, arr} = makeOperationRow(operation);
+            data[hash] = arr;
             continue;
         }
         for(const transaction of matchingTransactions) {
-            data.push(makeCombinationRow(operation, transaction));
+            const {hash, arr} = makeCombinationRow(operation, transaction);
+            data[hash] = arr;
         }
     }
+
+
 
     const csv = Papa.unparse({
         fields: [
@@ -95,7 +110,7 @@ async function createCombinedCsv(addresses) {
             'Transaction Value',
             'Transaction Royalties'
         ],
-        data: data.sort((a, b) => a[0].localeCompare(b[0]))
+        data: Object.values(data).sort((a, b) => a[0].localeCompare(b[0]))
     });
     const combinedDir = join(outDir, 'combined');
     if(!existsSync(combinedDir)) {
