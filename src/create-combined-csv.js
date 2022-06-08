@@ -96,22 +96,22 @@ async function createCombinedCsv(addresses) {
 
     const csv = Papa.unparse({
         fields: [
-            'Timestamp (UTC)',
-            'Operation',
-            'Type',
-            'Base Currency',
-            'Base Amount',
-            'Quote Currency',
-            'Quote Amount',
-            'Transaction Operation',
-            'Entrypoint',
-            'Target Alias',
-            'Target Contract',
-            'Token ID',
-            'Token FA2',
-            'Token Editions',
-            'Transaction Value',
-            'Transaction Royalties'
+            'timestamp',
+            'operation',
+            'type',
+            'currency',
+            'amount',
+            'fiatCurrency',
+            'fiatAmount',
+            'operation',
+            'entrypoint',
+            'targetAlias',
+            'targetContract',
+            'tokenId',
+            'fa2',
+            'value',
+            'royalties',
+            'editions'
         ],
         data: Object.values(data).sort((a, b) => a[0].localeCompare(b[0]))
     });
